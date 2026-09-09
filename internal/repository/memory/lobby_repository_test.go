@@ -97,3 +97,49 @@ func TestListEmpty(t *testing.T) {
 		t.Errorf("len(lobbies) = %d, want 0", len(lobbies))
 	}
 }
+
+func TestListReturnsAllLobbies(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+
+	first := &domain.Lobby{Name: "Sala A", MaxPlayers: 4}
+	second := &domain.Lobby{Name: "Sala B", MaxPlayers: 2}
+
+	for _, lobby := range []*domain.Lobby{first, second} {
+		if err := repo.Create(ctx, lobby); err != nil {
+			t.Fatalf("failed to create lobby: %v", err)
+		}
+	}
+
+	lobbies, err := repo.List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if len(lobbies) != 2 {
+		t.Fatalf("len(lobbies) = %d, want 2", len(lobbies))
+	}
+
+	want := map[int64]domain.Lobby{
+		first.ID:  *first,
+		second.ID: *second,
+	}
+
+	for _, lobby := range lobbies {
+		expected, exists := want[lobby.ID]
+		if !exists {
+			t.Errorf("unexpected or duplicate lobby ID %d", lobby.ID)
+			continue
+		}
+
+		if lobby != expected {
+			t.Errorf("lobby = %+v, want %+v", lobby, expected)
+		}
+
+		delete(want, lobby.ID)
+	}
+
+	for id := range want {
+		t.Errorf("missing lobby ID %d", id)
+	}
+}
