@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/domain"
 )
+
+var ErrLobbyNotFound = errors.New("lobby not found")
 
 type LobbyRepository interface {
 	Create(ctx context.Context, lobby *domain.Lobby) error

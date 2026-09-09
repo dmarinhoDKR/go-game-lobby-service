@@ -2,13 +2,11 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/domain"
+	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository"
 )
-
-var ErrLobbyNotFound = errors.New("lobby not found")
 
 type LobbyRepository struct {
 	mu      sync.RWMutex
@@ -39,7 +37,8 @@ func (r *LobbyRepository) Create(
 	lobby.ID = r.nextID
 	r.nextID++
 
-	r.lobbies[lobby.ID] = lobby
+	storedLobby := *lobby
+	r.lobbies[lobby.ID] = &storedLobby
 
 	return nil
 }
@@ -59,10 +58,11 @@ func (r *LobbyRepository) FindByID(
 
 	lobby, exists := r.lobbies[id]
 	if !exists {
-		return nil, ErrLobbyNotFound
+		return nil, repository.ErrLobbyNotFound
 	}
 
-	return lobby, nil
+	lobbyCopy := *lobby
+	return &lobbyCopy, nil
 }
 
 func (r *LobbyRepository) List(
