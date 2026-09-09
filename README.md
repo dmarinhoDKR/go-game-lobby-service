@@ -101,6 +101,7 @@ Esse endpoint confirma apenas que o servidor HTTP está respondendo.
 ```bash
 go test ./...
 go vet ./...
+go test -race ./...
 ```
 
 Os testes automatizados atuais verificam o isolamento por cópias na
@@ -108,6 +109,10 @@ criação, consulta por ID e listagem, além da busca por ID inexistente
 e da listagem vazia ou com múltiplos lobbies no repository em memória.
 Também verificam que contextos previamente cancelados impedem a
 criação, a consulta e a listagem, retornando `context.Canceled`.
+
+Há também um teste de 100 criações concorrentes, verificando a
+quantidade armazenada e IDs positivos e únicos. A suíte foi executada
+com o detector de corridas de dados (`-race`).
 
 Os endpoints foram verificados manualmente com `curl`.
 

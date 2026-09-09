@@ -3,6 +3,7 @@ package memory_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/domain"
@@ -242,5 +243,55 @@ func TestListWithCanceledContext(t *testing.T) {
 
 	if lobbies != nil {
 		t.Errorf("lobbies = %v, want nil", lobbies)
+	}
+}
+
+func TestCreateConcurrent(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+
+	const total = 100
+	var wg sync.WaitGroup
+
+	for i := 0; i < total; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			lobby := &domain.Lobby{
+				Name:       "Sala concorrente",
+				MaxPlayers: 4,
+			}
+
+			if err := repo.Create(ctx, lobby); err != nil {
+				t.Errorf("failed to create lobby: %v", err)
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	lobbies, err := repo.List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if len(lobbies) != total {
+		t.Fatalf("len(lobbies) = %d, want %d", len(lobbies), total)
+	}
+
+	seen := make(map[int64]bool, total)
+
+	for _, lobby := range lobbies {
+		if lobby.ID <= 0 {
+			t.Errorf("invalid lobby ID: %d", lobby.ID)
+		}
+
+		if seen[lobby.ID] {
+			t.Errorf("duplicate lobby ID: %d", lobby.ID)
+		}
+
+		seen[lobby.ID] = true
 	}
 }
