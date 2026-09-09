@@ -54,3 +54,15 @@ func (s *LobbyService) CreateLobby(
 
 	return lobby, nil
 }
+
+func (s *LobbyService) FindLobbyByID(
+	ctx context.Context,
+	id int64,
+) (*domain.Lobby, error) {
+	lobby, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find lobby: %w", err)
+	}
+
+	return lobby, nil
+}

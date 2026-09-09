@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository"
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/service"
 )
 
@@ -55,6 +57,30 @@ func (h *Handler) CreateLobby(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
+	if err := json.NewEncoder(w).Encode(lobby); err != nil {
+		return
+	}
+}
+
+func (h *Handler) FindLobbyByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "invalid lobby ID", http.StatusBadRequest)
+		return
+	}
+
+	lobby, err := h.lobbyService.FindLobbyByID(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrLobbyNotFound):
+			http.Error(w, "lobby not found", http.StatusNotFound)
+		default:
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(lobby); err != nil {
 		return
 	}
