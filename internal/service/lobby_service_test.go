@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/domain"
+	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository"
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository/memory"
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/service"
 )
@@ -131,5 +132,21 @@ func TestCreateLobbySuccess(t *testing.T) {
 
 	if *stored != *lobby {
 		t.Errorf("stored lobby = %+v, want %+v", stored, lobby)
+	}
+}
+
+func TestFindLobbyByIDPreservesNotFoundError(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+	svc := service.NewLobbyService(repo)
+
+	lobby, err := svc.FindLobbyByID(ctx, 999)
+
+	if !errors.Is(err, repository.ErrLobbyNotFound) {
+		t.Errorf("error = %v, want %v", err, repository.ErrLobbyNotFound)
+	}
+
+	if lobby != nil {
+		t.Errorf("lobby = %+v, want nil", lobby)
 	}
 }
