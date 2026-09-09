@@ -119,8 +119,9 @@ de jogadores abaixo de 2, sem armazenar lobbies inválidos. Também
 verificam a criação válida com 2 jogadores, a remoção de espaços nas
 extremidades do nome, o status inicial, o preenchimento da data de
 criação e o armazenamento do lobby.
-Também verificam que a consulta por ID preserva o erro
-`ErrLobbyNotFound`, permitindo identificá-lo com `errors.Is`.
+Também verificam que a consulta por ID retorna os dados do lobby criado
+e preserva o erro `ErrLobbyNotFound` quando ele não existe, permitindo
+identificá-lo com `errors.Is`.
 
 Os endpoints foram verificados manualmente com `curl`.
 

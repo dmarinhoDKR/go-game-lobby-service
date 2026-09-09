@@ -150,3 +150,31 @@ func TestFindLobbyByIDPreservesNotFoundError(t *testing.T) {
 		t.Errorf("lobby = %+v, want nil", lobby)
 	}
 }
+
+func TestFindLobbyByIDSuccess(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+	svc := service.NewLobbyService(repo)
+
+	created, err := svc.CreateLobby(ctx, "Sala de estudo", 4)
+	if err != nil {
+		t.Fatalf("failed to create lobby: %v", err)
+	}
+
+	if created == nil {
+		t.Fatal("created lobby = nil, want created lobby")
+	}
+
+	found, err := svc.FindLobbyByID(ctx, created.ID)
+	if err != nil {
+		t.Fatalf("failed to find lobby: %v", err)
+	}
+
+	if found == nil {
+		t.Fatal("found lobby = nil, want stored lobby")
+	}
+
+	if *found != *created {
+		t.Errorf("found lobby = %+v, want %+v", found, created)
+	}
+}
