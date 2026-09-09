@@ -114,9 +114,12 @@ Há também um teste de 100 criações concorrentes, verificando a
 quantidade armazenada e IDs positivos e únicos. A suíte foi executada
 com o detector de corridas de dados (`-race`).
 
+Os testes do service verificam a rejeição de nomes vazios ou compostos
+apenas por espaços em branco, sem armazenar lobbies inválidos.
+
 Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos
 
-- Ampliar os testes do repository e adicionar testes do service e dos handlers.
+- Ampliar os testes do repository e do service e adicionar testes dos handlers.
 - Adicionar persistência com PostgreSQL.
