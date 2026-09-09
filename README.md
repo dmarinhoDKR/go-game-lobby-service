@@ -114,8 +114,11 @@ Há também um teste de 100 criações concorrentes, verificando a
 quantidade armazenada e IDs positivos e únicos. A suíte foi executada
 com o detector de corridas de dados (`-race`).
 
-Os testes do service verificam a rejeição de nomes vazios ou compostos
-apenas por espaços em branco, sem armazenar lobbies inválidos.
+Os testes do service verificam a rejeição de nomes vazios e quantidades
+de jogadores abaixo de 2, sem armazenar lobbies inválidos. Também
+verificam a criação válida com 2 jogadores, a remoção de espaços nas
+extremidades do nome, o status inicial, o preenchimento da data de
+criação e o armazenamento do lobby.
 
 Os endpoints foram verificados manualmente com `curl`.
 
