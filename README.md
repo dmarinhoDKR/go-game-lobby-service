@@ -106,6 +106,9 @@ go vet ./...
 Os testes automatizados atuais verificam o isolamento por cópias na
 criação, consulta por ID e listagem, além da busca por ID inexistente
 e da listagem vazia ou com múltiplos lobbies no repository em memória.
+Também verificam que contextos previamente cancelados impedem a
+criação, a consulta e a listagem, retornando `context.Canceled`.
+
 Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos

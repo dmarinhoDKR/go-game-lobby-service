@@ -177,3 +177,70 @@ func TestListReturnsCopies(t *testing.T) {
 		t.Errorf("Name = %q, want %q", found.Name, "Sala original")
 	}
 }
+
+func TestCreateWithCanceledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	repo := memory.NewLobbyRepository()
+	lobby := &domain.Lobby{
+		Name:       "Sala Cancelada",
+		MaxPlayers: 4,
+	}
+
+	err := repo.Create(ctx, lobby)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("error = %v, want %v", err, context.Canceled)
+	}
+
+	lobbies, err := repo.List(context.Background())
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if len(lobbies) != 0 {
+		t.Errorf("len(lobbies) = %d, want 0", len(lobbies))
+	}
+}
+
+func TestFindByIDWithCanceledContext(t *testing.T) {
+	repo := memory.NewLobbyRepository()
+	lobby := &domain.Lobby{Name: "Sala original", MaxPlayers: 4}
+
+	if err := repo.Create(context.Background(), lobby); err != nil {
+		t.Fatalf("failed to create lobby: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	found, err := repo.FindByID(ctx, lobby.ID)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("error = %v, want %v", err, context.Canceled)
+	}
+
+	if found != nil {
+		t.Errorf("lobby = %v, want nil", found)
+	}
+}
+
+func TestListWithCanceledContext(t *testing.T) {
+	repo := memory.NewLobbyRepository()
+	lobby := &domain.Lobby{Name: "Sala original", MaxPlayers: 4}
+
+	if err := repo.Create(context.Background(), lobby); err != nil {
+		t.Fatalf("failed to create lobby: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	lobbies, err := repo.List(ctx)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("error = %v, want %v", err, context.Canceled)
+	}
+
+	if lobbies != nil {
+		t.Errorf("lobbies = %v, want nil", lobbies)
+	}
+}
