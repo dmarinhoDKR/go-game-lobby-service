@@ -103,11 +103,11 @@ go test ./...
 go vet ./...
 ```
 
-Ainda não existem testes automatizados. Neste estágio, `go test ./...`
-verifica a compilação dos pacotes; os endpoints foram verificados
-manualmente com `curl`.
+Os testes automatizados atuais verificam o isolamento por cópias na
+criação e na consulta por ID do repository em memória.
+Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos
 
-- Adicionar testes automatizados.
+- Ampliar os testes do repository e adicionar testes do service e dos handlers.
 - Adicionar persistência com PostgreSQL.
