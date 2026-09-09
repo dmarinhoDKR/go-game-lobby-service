@@ -18,6 +18,7 @@ func main() {
 
 	mux.HandleFunc("POST /lobbies", handler.CreateLobby)
 	mux.HandleFunc("GET /lobbies/{id}", handler.FindLobbyByID)
+	mux.HandleFunc("GET /lobbies", handler.ListLobbies)
 
 	server := &http.Server{
 		Addr:    ":8080",

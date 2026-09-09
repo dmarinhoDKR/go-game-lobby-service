@@ -66,3 +66,14 @@ func (s *LobbyService) FindLobbyByID(
 
 	return lobby, nil
 }
+
+func (s *LobbyService) ListLobbies(
+	ctx context.Context,
+) ([]domain.Lobby, error) {
+	lobbies, err := s.repository.List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list lobbies: %w", err)
+	}
+
+	return lobbies, nil
+}

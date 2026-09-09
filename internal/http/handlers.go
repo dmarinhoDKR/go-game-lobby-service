@@ -85,3 +85,17 @@ func (h *Handler) FindLobbyByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) ListLobbies(w http.ResponseWriter, r *http.Request) {
+	lobbies, err := h.lobbyService.ListLobbies(r.Context())
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(lobbies); err != nil {
+		return
+	}
+}
