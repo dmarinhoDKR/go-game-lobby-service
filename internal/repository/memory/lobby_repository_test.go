@@ -143,3 +143,37 @@ func TestListReturnsAllLobbies(t *testing.T) {
 		t.Errorf("missing lobby ID %d", id)
 	}
 }
+
+func TestListReturnsCopies(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+
+	lobby := &domain.Lobby{
+		Name:       "Sala original",
+		MaxPlayers: 4,
+	}
+
+	if err := repo.Create(ctx, lobby); err != nil {
+		t.Fatalf("failed to create lobby: %v", err)
+	}
+
+	lobbies, err := repo.List(ctx)
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if len(lobbies) != 1 {
+		t.Fatalf("len(lobbies) = %d, want 1", len(lobbies))
+	}
+
+	lobbies[0].Name = "Sala modificada"
+
+	found, err := repo.FindByID(ctx, lobby.ID)
+	if err != nil {
+		t.Fatalf("failed to find lobby: %v", err)
+	}
+
+	if found.Name != "Sala original" {
+		t.Errorf("Name = %q, want %q", found.Name, "Sala original")
+	}
+}

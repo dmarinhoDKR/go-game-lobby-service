@@ -104,8 +104,8 @@ go vet ./...
 ```
 
 Os testes automatizados atuais verificam o isolamento por cópias na
-criação e na consulta por ID, a busca por ID inexistente e a listagem
-vazia ou com múltiplos lobbies no repository em memória.
+criação, consulta por ID e listagem, além da busca por ID inexistente
+e da listagem vazia ou com múltiplos lobbies no repository em memória.
 Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos
