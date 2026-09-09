@@ -99,3 +99,17 @@ func (h *Handler) ListLobbies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	response := struct {
+		Status string `json:"status"`
+	}{
+		Status: "ok",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		return
+	}
+}
