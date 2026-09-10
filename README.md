@@ -171,6 +171,25 @@ docker compose down
 A API ainda utiliza o repository em memória. A integração com
 PostgreSQL será adicionada na próxima etapa.
 
+### Criar a tabela
+
+Com o banco iniciado, aplique a primeira migração na raiz do projeto:
+
+```bash
+docker compose exec -T postgres psql -U lobby -d lobby \
+  -v ON_ERROR_STOP=1 --single-transaction \
+  < migrations/001_create_lobbies.up.sql
+```
+
+Execute uma vez por banco novo. As migrações ainda são aplicadas
+manualmente, sem controle automático de versões.
+
+Para conferir a estrutura:
+
+```bash
+docker compose exec postgres psql -U lobby -d lobby -c "\d lobbies"
+```
+
 ## Próximos passos
 
 - Ampliar os testes do repository, do service e dos handlers.
