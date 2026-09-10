@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,12 +25,19 @@ func main() {
 }
 
 func run() error {
+	signalCtx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		return fmt.Errorf("DATABASE_URL is not set")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(signalCtx, 15*time.Second)
 	defer cancel()
 
 	pool, err := pgxpool.New(ctx, databaseURL)
@@ -57,11 +67,42 @@ func run() error {
 		Handler: mux,
 	}
 
-	log.Println("server running on http://localhost:8080")
+	serverErrors := make(chan error, 1)
 
-	if err := server.ListenAndServe(); err != nil {
+	go func() {
+		log.Println("server running on http://localhost:8080")
+		serverErrors <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErrors:
+		if !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("HTTP server stopped: %w", err)
+		}
+		return nil
+
+	case <-signalCtx.Done():
+		stop()
+		log.Println("shutting down HTTP server")
+	}
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		if closeErr := server.Close(); closeErr != nil {
+			log.Printf("failed to force-close HTTP server: %v", closeErr)
+		}
+		return fmt.Errorf("failed to shut down HTTP server: %w", err)
+	}
+
+	if err := <-serverErrors; !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("HTTP server stopped: %w", err)
 	}
 
+	log.Println("HTTP server stopped")
 	return nil
 }

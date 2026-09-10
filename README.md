@@ -45,6 +45,12 @@ O servidor escuta na porta `8080`. A variável `DATABASE_URL` é
 obrigatória, e a conexão com o banco é verificada antes de iniciar
 o servidor HTTP.
 
+Para encerrar a API, pressione `Ctrl+C`. Ao receber `SIGINT` ou
+`SIGTERM`, o servidor deixa de aceitar novas conexões e aguarda
+até 10 segundos pelas requisições em andamento. Se esse prazo
+expirar, as conexões HTTP são fechadas à força. O pool PostgreSQL
+é fechado ao sair da função de execução.
+
 ## Endpoints
 
 | Método | Caminho | Descrição |
@@ -223,4 +229,3 @@ com `SKIP`.
 ## Próximos passos
 
 - Ampliar os testes do repository, do service e dos handlers.
-- Adicionar encerramento controlado da API.
