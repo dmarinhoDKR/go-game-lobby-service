@@ -137,6 +137,9 @@ expor detalhes internos na resposta.
 A consulta por ID é testada com `ServeMux`, cobrindo sucesso, IDs
 inválidos, lobby inexistente e falha de armazenamento, com verificação
 dos dados retornados e das mensagens de erro.
+A listagem HTTP é testada vazia, com múltiplos lobbies e com falha de
+armazenamento, verificando o array JSON, os dados retornados e a
+resposta `500` com mensagem pública.
 
 Os endpoints foram verificados manualmente com `curl`.
 
