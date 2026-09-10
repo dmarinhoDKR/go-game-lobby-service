@@ -122,6 +122,8 @@ criação e o armazenamento do lobby.
 Também verificam que a consulta por ID retorna os dados do lobby criado
 e preserva o erro `ErrLobbyNotFound` quando ele não existe, permitindo
 identificá-lo com `errors.Is`.
+A listagem é verificada tanto sem lobbies quanto com múltiplos lobbies
+criados, comparando os dados por ID sem depender da ordem de retorno.
 
 Os endpoints foram verificados manualmente com `curl`.
 

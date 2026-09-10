@@ -178,3 +178,70 @@ func TestFindLobbyByIDSuccess(t *testing.T) {
 		t.Errorf("found lobby = %+v, want %+v", found, created)
 	}
 }
+
+func TestListLobbiesEmpty(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+	svc := service.NewLobbyService(repo)
+
+	lobbies, err := svc.ListLobbies(ctx)
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if lobbies == nil {
+		t.Fatal("lobbies = nil, want initialized empty slice")
+	}
+
+	if len(lobbies) != 0 {
+		t.Errorf("len(lobbies) = %d, want 0", len(lobbies))
+	}
+}
+
+func TestListLobbiesReturnsCreatedLobbies(t *testing.T) {
+	ctx := context.Background()
+	repo := memory.NewLobbyRepository()
+	svc := service.NewLobbyService(repo)
+
+	want := make(map[int64]domain.Lobby)
+
+	for _, name := range []string{"Sala A", "Sala B"} {
+		lobby, err := svc.CreateLobby(ctx, name, 4)
+		if err != nil {
+			t.Fatalf("failed to create lobby %q: %v", name, err)
+		}
+
+		if lobby == nil {
+			t.Fatalf("lobby = nil, want created lobby")
+		}
+
+		want[lobby.ID] = *lobby
+	}
+
+	lobbies, err := svc.ListLobbies(ctx)
+	if err != nil {
+		t.Fatalf("failed to list lobbies: %v", err)
+	}
+
+	if len(lobbies) != 2 {
+		t.Fatalf("len(lobbies) = %d, want 2", len(lobbies))
+	}
+
+	for _, lobby := range lobbies {
+		expected, exists := want[lobby.ID]
+		if !exists {
+			t.Errorf("unexpected or duplicate lobby ID: %d", lobby.ID)
+			continue
+		}
+
+		if lobby != expected {
+			t.Errorf("lobby = %+v, want %+v", lobby, expected)
+		}
+
+		delete(want, lobby.ID)
+	}
+
+	for id := range want {
+		t.Errorf("missing lobby ID: %d", id)
+	}
+}
