@@ -245,3 +245,75 @@ func TestListLobbiesReturnsCreatedLobbies(t *testing.T) {
 		t.Errorf("missing lobby ID: %d", id)
 	}
 }
+
+type failingLobbyRepository struct {
+	err error
+}
+
+func (r *failingLobbyRepository) Create(
+	ctx context.Context,
+	lobby *domain.Lobby,
+) error {
+	return r.err
+}
+
+func (r *failingLobbyRepository) FindByID(
+	ctx context.Context,
+	id int64,
+) (*domain.Lobby, error) {
+	return nil, r.err
+}
+
+func (r *failingLobbyRepository) List(
+	ctx context.Context,
+) ([]domain.Lobby, error) {
+	return nil, r.err
+}
+
+func TestCreateLobbyPreservesRepositoryError(t *testing.T) {
+	wantErr := errors.New("storage unavailable")
+	repo := &failingLobbyRepository{err: wantErr}
+	svc := service.NewLobbyService(repo)
+
+	lobby, err := svc.CreateLobby(context.Background(), "Sala válida", 4)
+
+	if !errors.Is(err, wantErr) {
+		t.Errorf("error = %v, want %v", err, wantErr)
+	}
+
+	if lobby != nil {
+		t.Errorf("lobby = %+v, want nil", lobby)
+	}
+}
+
+func TestFindLobbyByIDPreservesRepositoryError(t *testing.T) {
+	wantErr := errors.New("storage unavailable")
+	repo := &failingLobbyRepository{err: wantErr}
+	svc := service.NewLobbyService(repo)
+
+	lobby, err := svc.FindLobbyByID(context.Background(), 1)
+
+	if !errors.Is(err, wantErr) {
+		t.Errorf("error = %v, want %v", err, wantErr)
+	}
+
+	if lobby != nil {
+		t.Errorf("lobby = %+v, want nil", lobby)
+	}
+}
+
+func TestListLobbiesPreservesRepositoryError(t *testing.T) {
+	wantErr := errors.New("storage unavailable")
+	repo := &failingLobbyRepository{err: wantErr}
+	svc := service.NewLobbyService(repo)
+
+	lobbies, err := svc.ListLobbies(context.Background())
+
+	if !errors.Is(err, wantErr) {
+		t.Errorf("error = %v, want %v", err, wantErr)
+	}
+
+	if lobbies != nil {
+		t.Errorf("lobbies = %+v, want nil", lobbies)
+	}
+}

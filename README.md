@@ -125,6 +125,10 @@ identificá-lo com `errors.Is`.
 A listagem é verificada tanto sem lobbies quanto com múltiplos lobbies
 criados, comparando os dados por ID sem depender da ordem de retorno.
 
+Falhas de armazenamento são simuladas por uma implementação de teste
+da interface do repository. Os testes verificam que criação, consulta
+e listagem preservam o erro original e retornam dados nulos.
+
 Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos
