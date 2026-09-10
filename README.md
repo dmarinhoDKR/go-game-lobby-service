@@ -129,8 +129,9 @@ Falhas de armazenamento são simuladas por uma implementação de teste
 da interface do repository. Os testes verificam que criação, consulta
 e listagem preservam o erro original e retornam dados nulos.
 
-O handler de health possui teste automatizado com `httptest`,
-verificando status HTTP, Content-Type e o conteúdo da resposta JSON.
+Os testes HTTP usam `httptest` para verificar o handler de health e
+a criação válida de lobbies, incluindo status HTTP, Content-Type,
+conteúdo JSON e correspondência com os dados armazenados.
 
 Os endpoints foram verificados manualmente com `curl`.
 
