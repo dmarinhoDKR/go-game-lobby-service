@@ -378,3 +378,113 @@ func TestFindLobbyByIDErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestListLobbiesSuccess(t *testing.T) {
+	tests := []struct {
+		name  string
+		names []string
+	}{
+		{name: "empty"},
+		{name: "with lobbies", names: []string{"Sala A", "Sala B"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := memory.NewLobbyRepository()
+			svc := service.NewLobbyService(repo)
+			handler := apphttp.NewHandler(svc)
+
+			want := make(map[int64]domain.Lobby)
+
+			for _, name := range tt.names {
+				lobby, err := svc.CreateLobby(context.Background(), name, 4)
+				if err != nil {
+					t.Fatalf("failed to create lobby: %v", err)
+				}
+				if lobby == nil {
+					t.Fatal("created lobby = nil")
+				}
+				want[lobby.ID] = *lobby
+			}
+
+			request := httptest.NewRequest(http.MethodGet, "/lobbies", nil)
+			recorder := httptest.NewRecorder()
+
+			handler.ListLobbies(recorder, request)
+
+			response := recorder.Result()
+			defer response.Body.Close()
+
+			if response.StatusCode != http.StatusOK {
+				t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusOK)
+			}
+
+			if got := response.Header.Get("Content-Type"); got != "application/json" {
+				t.Errorf("Content-Type = %q, want application/json", got)
+			}
+
+			var lobbies []domain.Lobby
+			if err := json.NewDecoder(response.Body).Decode(&lobbies); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if lobbies == nil {
+				t.Fatal("lobbies = nil, want JSON array")
+			}
+
+			if len(lobbies) != len(tt.names) {
+				t.Fatalf("len(lobbies) = %d, want %d", len(lobbies), len(tt.names))
+			}
+
+			for _, lobby := range lobbies {
+				expected, exists := want[lobby.ID]
+				if !exists {
+					t.Errorf("unexpected or duplicate lobby ID: %d", lobby.ID)
+					continue
+				}
+
+				if lobby.ID != expected.ID ||
+					lobby.Name != expected.Name ||
+					lobby.MaxPlayers != expected.MaxPlayers ||
+					lobby.Status != expected.Status ||
+					!lobby.CreatedAt.Equal(expected.CreatedAt) {
+					t.Errorf("lobby = %+v, want %+v", lobby, expected)
+				}
+
+				delete(want, lobby.ID)
+			}
+
+			for id := range want {
+				t.Errorf("missing lobby ID: %d", id)
+			}
+		})
+	}
+}
+
+func TestListLobbiesRepositoryError(t *testing.T) {
+	repo := &failingLobbyRepository{
+		err: errors.New("storage connection failed"),
+	}
+	svc := service.NewLobbyService(repo)
+	handler := apphttp.NewHandler(svc)
+
+	request := httptest.NewRequest(http.MethodGet, "/lobbies", nil)
+	recorder := httptest.NewRecorder()
+
+	handler.ListLobbies(recorder, request)
+
+	response := recorder.Result()
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusInternalServerError {
+		t.Errorf(
+			"status = %d, want %d",
+			response.StatusCode,
+			http.StatusInternalServerError,
+		)
+	}
+
+	if got := recorder.Body.String(); got != "internal server error\n" {
+		t.Errorf("body = %q, want %q", got, "internal server error\n")
+	}
+}
