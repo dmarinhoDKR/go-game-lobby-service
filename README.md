@@ -143,6 +143,34 @@ resposta `500` com mensagem pública.
 
 Os endpoints foram verificados manualmente com `curl`.
 
+## PostgreSQL local
+
+Requer Docker e Docker Compose.
+
+Para iniciar o banco:
+
+```bash
+docker compose up -d --wait
+```
+
+Para consultar seu estado:
+
+```bash
+docker compose ps
+```
+
+O banco está disponível em `localhost:5432`, com banco e usuário
+`lobby` e senha de desenvolvimento `lobby_dev`.
+
+Para parar e remover o container, preservando os dados no volume:
+
+```bash
+docker compose down
+```
+
+A API ainda utiliza o repository em memória. A integração com
+PostgreSQL será adicionada na próxima etapa.
+
 ## Próximos passos
 
 - Ampliar os testes do repository, do service e dos handlers.
