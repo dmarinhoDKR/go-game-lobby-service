@@ -129,9 +129,12 @@ Falhas de armazenamento são simuladas por uma implementação de teste
 da interface do repository. Os testes verificam que criação, consulta
 e listagem preservam o erro original e retornam dados nulos.
 
+O handler de health possui teste automatizado com `httptest`,
+verificando status HTTP, Content-Type e o conteúdo da resposta JSON.
+
 Os endpoints foram verificados manualmente com `curl`.
 
 ## Próximos passos
 
-- Ampliar os testes do repository e do service e adicionar testes dos handlers.
+- Ampliar os testes do repository, do service e dos handlers.
 - Adicionar persistência com PostgreSQL.
