@@ -31,7 +31,7 @@ func (r *LobbyRepository) Create(
 	const query = `
 		INSERT INTO lobbies (name, status, max_players, created_at)
 		VALUES ($1, $2, $3, $4)
-		RETURNING id
+		RETURNING id, created_at
 	`
 
 	err := r.pool.QueryRow(
@@ -41,10 +41,12 @@ func (r *LobbyRepository) Create(
 		string(lobby.Status),
 		lobby.MaxPlayers,
 		lobby.CreatedAt,
-	).Scan(&lobby.ID)
+	).Scan(&lobby.ID, &lobby.CreatedAt)
 	if err != nil {
 		return fmt.Errorf("failed to insert lobby: %w", err)
 	}
+
+	lobby.CreatedAt = lobby.CreatedAt.UTC()
 
 	return nil
 }
@@ -77,6 +79,7 @@ func (r *LobbyRepository) FindByID(
 	}
 
 	lobby.Status = domain.LobbyStatus(status)
+	lobby.CreatedAt = lobby.CreatedAt.UTC()
 
 	return &lobby, nil
 }
@@ -113,6 +116,7 @@ func (r *LobbyRepository) List(
 		}
 
 		lobby.Status = domain.LobbyStatus(status)
+		lobby.CreatedAt = lobby.CreatedAt.UTC()
 		lobbies = append(lobbies, lobby)
 	}
 

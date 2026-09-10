@@ -12,10 +12,13 @@ regras de negócio e persistência.
 - Listagem de lobbies.
 - Consulta de lobby por ID.
 - Endpoint de health.
-- Armazenamento em memória protegido por `sync.RWMutex`.
+- Persistência em PostgreSQL com `pgxpool`.
+- Repository em memória mantido para testes e aprendizado.
 
-Os dados são perdidos quando o servidor é encerrado.
-A listagem não possui ordenação garantida.
+Os lobbies permanecem disponíveis após reiniciar a API.
+O PostgreSQL local mantém os dados em um volume do Docker.
+A listagem PostgreSQL retorna os lobbies em ordem crescente de ID.
+As datas são retornadas em UTC, com precisão de microssegundos.
 
 ## Requisitos
 
@@ -23,13 +26,24 @@ A listagem não possui ordenação garantida.
 
 ## Executar
 
-Na raiz do projeto:
+Na raiz do projeto, inicie o PostgreSQL:
 
 ```bash
+docker compose up -d --wait
+```
+
+Em um banco novo, aplique a migração conforme a seção “Criar a tabela”.
+
+Depois inicie a API:
+
+```bash
+DATABASE_URL='postgres://lobby:lobby_dev@localhost:5432/lobby?sslmode=disable' \
 go run ./cmd/api
 ```
 
-O servidor escuta na porta `8080`.
+O servidor escuta na porta `8080`. A variável `DATABASE_URL` é
+obrigatória, e a conexão com o banco é verificada antes de iniciar
+o servidor HTTP.
 
 ## Endpoints
 
@@ -189,9 +203,9 @@ Para conferir a estrutura:
 docker compose exec postgres psql -U lobby -d lobby -c "\d lobbies"
 ```
 
-O repository PostgreSQL está implementado e possui teste de integração.
-A API ainda utiliza o repository em memória; a conexão do PostgreSQL
-à inicialização da API será feita na próxima etapa.
+A API utiliza o repository PostgreSQL. O teste de integração verifica
+as operações diretamente no banco, e a persistência após reiniciar
+a API também foi verificada manualmente.
 
 ### Teste de integração
 
@@ -209,4 +223,4 @@ com `SKIP`.
 ## Próximos passos
 
 - Ampliar os testes do repository, do service e dos handlers.
-- Adicionar persistência com PostgreSQL.
+- Adicionar encerramento controlado da API.
