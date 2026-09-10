@@ -95,6 +95,8 @@ Esse endpoint confirma apenas que o servidor HTTP está respondendo.
 - `internal/repository`: contrato de persistência e erro compartilhado.
 - `internal/repository/memory`: implementação em memória.
 - `internal/http`: handlers, leitura das requisições e respostas HTTP.
+- `internal/repository/postgres`: implementação PostgreSQL com `pgxpool`.
+- `migrations`: arquivos SQL para criação e evolução da estrutura do banco.
 
 ## Verificações
 
@@ -168,9 +170,6 @@ Para parar e remover o container, preservando os dados no volume:
 docker compose down
 ```
 
-A API ainda utiliza o repository em memória. A integração com
-PostgreSQL será adicionada na próxima etapa.
-
 ### Criar a tabela
 
 Com o banco iniciado, aplique a primeira migração na raiz do projeto:
@@ -189,6 +188,23 @@ Para conferir a estrutura:
 ```bash
 docker compose exec postgres psql -U lobby -d lobby -c "\d lobbies"
 ```
+
+O repository PostgreSQL está implementado e possui teste de integração.
+A API ainda utiliza o repository em memória; a conexão do PostgreSQL
+à inicialização da API será feita na próxima etapa.
+
+### Teste de integração
+
+Com o PostgreSQL iniciado e a migração aplicada:
+
+```bash
+TEST_DATABASE_URL='postgres://lobby:lobby_dev@localhost:5432/lobby?sslmode=disable' \
+go test ./internal/repository/postgres -run TestLobbyRepositoryIntegration -v -count=1
+```
+
+O teste verifica criação, consulta, listagem e ID inexistente, removendo
+ao final o registro que criou. Sem `TEST_DATABASE_URL`, ele é ignorado
+com `SKIP`.
 
 ## Próximos passos
 
