@@ -6,11 +6,13 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/domain"
 	apphttp "github.com/dmarinhoDKR/go-game-lobby-service/internal/http"
+	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository"
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/repository/memory"
 	"github.com/dmarinhoDKR/go-game-lobby-service/internal/service"
 )
@@ -237,5 +239,142 @@ func TestCreateLobbyRepositoryError(t *testing.T) {
 
 	if got := recorder.Body.String(); got != "internal server error\n" {
 		t.Errorf("body = %q, want %q", got, "internal server error\n")
+	}
+}
+
+func TestFindLobbyByIDSuccess(t *testing.T) {
+	repo := memory.NewLobbyRepository()
+	svc := service.NewLobbyService(repo)
+	handler := apphttp.NewHandler(svc)
+
+	created, err := svc.CreateLobby(context.Background(), "Test Lobby", 4)
+	if err != nil {
+		t.Fatalf("failed to create lobby: %v", err)
+	}
+	if created == nil {
+		t.Fatal("created lobby = nil")
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /lobbies/{id}", handler.FindLobbyByID)
+
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/lobbies/"+strconv.FormatInt(created.ID, 10),
+		nil,
+	)
+	recorder := httptest.NewRecorder()
+
+	mux.ServeHTTP(recorder, request)
+
+	response := recorder.Result()
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+
+	if got := response.Header.Get("Content-Type"); got != "application/json" {
+		t.Errorf("Content-Type = %s, want application/json", got)
+	}
+
+	var found domain.Lobby
+	if err := json.NewDecoder(response.Body).Decode(&found); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if found.ID != created.ID ||
+		found.Name != created.Name ||
+		found.MaxPlayers != created.MaxPlayers ||
+		found.Status != created.Status ||
+		!found.CreatedAt.Equal(created.CreatedAt) {
+		t.Errorf("found lobby = %+v, want %+v", found, created)
+	}
+}
+
+func TestFindLobbyByIDErrors(t *testing.T) {
+	tests := []struct {
+		name       string
+		id         string
+		storageErr error
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name:       "non-numeric ID",
+			id:         "abc",
+			wantStatus: http.StatusBadRequest,
+			wantBody:   "invalid lobby ID\n",
+		},
+		{
+			name:       "zero ID",
+			id:         "0",
+			wantStatus: http.StatusBadRequest,
+			wantBody:   "invalid lobby ID\n",
+		},
+		{
+			name:       "negative ID",
+			id:         "-1",
+			wantStatus: http.StatusBadRequest,
+			wantBody:   "invalid lobby ID\n",
+		},
+		{
+			name:       "ID overflow",
+			id:         "9223372036854775808",
+			wantStatus: http.StatusBadRequest,
+			wantBody:   "invalid lobby ID\n",
+		},
+		{
+			name:       "not found",
+			id:         "999",
+			wantStatus: http.StatusNotFound,
+			wantBody:   "lobby not found\n",
+		},
+		{
+			name:       "repository failure",
+			id:         "1",
+			storageErr: errors.New("storage connection failed"),
+			wantStatus: http.StatusInternalServerError,
+			wantBody:   "internal server error\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var repo repository.LobbyRepository = memory.NewLobbyRepository()
+			if tt.storageErr != nil {
+				repo = &failingLobbyRepository{err: tt.storageErr}
+			}
+
+			svc := service.NewLobbyService(repo)
+			handler := apphttp.NewHandler(svc)
+
+			mux := http.NewServeMux()
+			mux.HandleFunc("GET /lobbies/{id}", handler.FindLobbyByID)
+
+			request := httptest.NewRequest(
+				http.MethodGet,
+				"/lobbies/"+tt.id,
+				nil,
+			)
+			recorder := httptest.NewRecorder()
+
+			mux.ServeHTTP(recorder, request)
+
+			response := recorder.Result()
+			defer response.Body.Close()
+
+			if response.StatusCode != tt.wantStatus {
+				t.Errorf(
+					"status = %d, want %d",
+					response.StatusCode,
+					tt.wantStatus,
+				)
+			}
+
+			if got := recorder.Body.String(); got != tt.wantBody {
+				t.Errorf("body = %q, want %q", got, tt.wantBody)
+			}
+		})
 	}
 }

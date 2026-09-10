@@ -134,6 +134,9 @@ lobbies, incluindo status HTTP, Content-Type, conteúdo JSON e dados
 armazenados. Também verificam a rejeição de entradas inválidas com
 `400`, sem armazenamento, e falhas do repository com `500`, sem
 expor detalhes internos na resposta.
+A consulta por ID é testada com `ServeMux`, cobrindo sucesso, IDs
+inválidos, lobby inexistente e falha de armazenamento, com verificação
+dos dados retornados e das mensagens de erro.
 
 Os endpoints foram verificados manualmente com `curl`.
 
