@@ -1,7 +1,6 @@
 # Go Game Lobby Service
 
-API REST para gerenciamento de lobbies de jogos, desenvolvida como
-projeto de aprendizado de Go.
+Serviço backend em Go com API REST para gerenciamento de lobbies de jogos, desenvolvido como projeto de portfólio
 
 O projeto evolui incrementalmente, com separação entre transporte HTTP,
 regras de negócio e persistência.
@@ -11,6 +10,16 @@ regras de negócio e persistência.
 ![pgx](https://img.shields.io/badge/pgx-5.11.0-00ADD8?style=flat)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat&logo=docker&logoColor=white)
+
+## Objetivo
+
+Este projeto simula o backend de um lobby de jogos multiplayer. Ele permite
+criar salas, consultar uma sala específica e listar as salas disponíveis,
+mantendo os dados persistidos em PostgreSQL.
+
+O foco do projeto é praticar a construção de serviços backend em Go com
+separação de responsabilidades, validação de regras de negócio, concorrência,
+testes automatizados e execução local reproduzível com Docker Compose.
 
 ## Screenshots
 
