@@ -239,9 +239,11 @@ go test ./internal/repository/postgres -run TestLobbyRepositoryIntegration -v -c
 ```
 
 O teste verifica criação, consulta, listagem e ID inexistente, removendo
-ao final o registro que criou. Sem `TEST_DATABASE_URL`, ele é ignorado
-com `SKIP`.
+ao final o registro que criou. Sem `TEST_DATABASE_URL`, o teste é ignorado
+com `SKIP`; a suíte geral continua funcionando sem uma instância
+PostgreSQL ativa.
 
 ## Próximos passos
 
+- Automatizar a aplicação e o controle de versões das migrações.
 - Ampliar os testes do repository, do service e dos handlers.
