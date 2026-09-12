@@ -6,6 +6,22 @@ projeto de aprendizado de Go.
 O projeto evolui incrementalmente, com separação entre transporte HTTP,
 regras de negócio e persistência.
 
+![Go](https://img.shields.io/badge/Go-1.25.1-00ADD8?style=flat&logo=go&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat&logo=postgresql&logoColor=white)
+![pgx](https://img.shields.io/badge/pgx-5.11.0-00ADD8?style=flat)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat&logo=docker&logoColor=white)
+
+## Screenshots
+
+| Criação de lobby | Consulta de lobby |
+|---|---|
+| ![Criação de lobby](docs/screenshots/create-lobby.png) | ![Consulta de lobby](docs/screenshots/get-lobby.png) |
+
+| Testes automatizados |
+|---|
+| ![Testes automatizados](docs/screenshots/tests.png) |
+
 ## Estado atual
 
 - Criação de lobbies com validação de nome e número de jogadores.
